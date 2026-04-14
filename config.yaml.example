@@ -287,6 +287,14 @@ mqtt:
   # Typically uses ports: 80 (ws://), 443 (wss://), or 9001
   use_websockets: false
 
+  # Payload/topic schema to use for packet publishing.
+  # - default:   {base_topic}/{node_name}/{packet|advert|...}
+  # - letsmesh:  meshcore/<iata_code>/<public_key>/packets
+  # When using letsmesh schema, status messages are also published to:
+  #   meshcore/<iata_code>/<public_key>/status
+  # and LetsMesh metadata is taken from the letsmesh section below.
+  schema: "default"
+
   # Authentication (optional)
   username: null
   password: null

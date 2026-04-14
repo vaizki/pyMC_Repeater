@@ -32,7 +32,13 @@ class StorageCollector:
 
         self.sqlite_handler = SQLiteHandler(self.storage_dir)
         self.rrd_handler = RRDToolHandler(self.storage_dir)
-        self.mqtt_handler = MQTTHandler(config.get("mqtt", {}), node_name, node_id)
+        self.mqtt_handler = MQTTHandler(
+            config.get("mqtt", {}),
+            node_name,
+            node_id,
+            full_config=config,
+            stats_provider=self._get_live_stats,
+        )
 
         # Initialize LetsMesh handler if configured
         self.letsmesh_handler = None
