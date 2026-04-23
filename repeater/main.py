@@ -994,6 +994,8 @@ class RepeaterDaemon:
             if self.repeater_handler:
                 self.repeater_handler.mark_seen(packet)
                 logger.debug("Marked own advert as seen in duplicate cache")
+                self.repeater_handler.record_local_transmission(packet)
+                logger.debug("Sent own advert to storage handler(s)")
 
             logger.info(f"Sent flood advert '{node_name}' at ({latitude: .6f}, {longitude: .6f})")
             return True

@@ -458,6 +458,44 @@ class RepeaterHandler(BaseHandler):
         if len(self.recent_packets) > self.max_recent_packets:
             self.recent_packets.pop(0)
 
+    def record_local_transmission(self, packet: Packet, metadata: Optional[dict] = None) -> None:
+        """Record a locally originated packet as transmitted for UI/storage."""
+        metadata = metadata or {}
+        rssi = metadata.get("rssi", 0)
+        snr = metadata.get("snr", 0.0)
+        if not hasattr(packet, "header") or packet.header is None:
+            logger.debug("record_local_transmission: packet missing header, skipping")
+            return
+        header_info = PacketHeaderUtils.parse_header(packet.header)
+        payload_type = header_info["payload_type"]
+        route_type = header_info["route_type"]
+        original_path_hashes = packet.get_path_hashes_hex()
+        path_hash_size = packet.get_path_hash_size()
+        path_hash = self._path_hash_display(original_path_hashes)
+        src_hash, dst_hash = self._packet_record_src_dst(packet, payload_type)
+        packet_record = self._build_packet_record(
+            packet,
+            payload_type,
+            route_type,
+            rssi,
+            snr,
+            original_path_hashes,
+            path_hash_size,
+            path_hash,
+            src_hash,
+            dst_hash,
+            transmitted=True,
+        )
+        self.forwarded_count += 1
+        if self.storage:
+            try:
+                self.storage.record_packet(packet_record, skip_letsmesh_if_invalid=False)
+            except Exception as e:
+                logger.error(f"Failed to store local transmission record: {e}")
+        self.recent_packets.append(packet_record)
+        if len(self.recent_packets) > self.max_recent_packets:
+            self.recent_packets.pop(0)
+
     def record_duplicate(self, packet: Packet, rssi: int = 0, snr: float = 0.0) -> None:
         """Record a known-duplicate packet for UI/storage visibility without forwarding.
 
